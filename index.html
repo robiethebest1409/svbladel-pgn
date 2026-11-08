@@ -742,6 +742,52 @@ const board = Chessboard('board',{
 
 /* Klikken en tikken om stukken te verplaatsen */
 
+let pointerStartX = 0;
+let pointerStartY = 0;
+let pointerMoved = false;
+
+const boardElement = document.getElementById('board');
+
+// Onthoud waar de muis of vinger begint
+boardElement.addEventListener('pointerdown',function(event){
+
+  if(mode !== 'analysis') return;
+
+  pointerStartX = event.clientX;
+  pointerStartY = event.clientY;
+  pointerMoved = false;
+
+},true);
+
+// Controleer of het een sleepbeweging is
+document.addEventListener('pointermove',function(event){
+
+  if(mode !== 'analysis') return;
+
+  if(
+    Math.abs(event.clientX-pointerStartX)>8 ||
+    Math.abs(event.clientY-pointerStartY)>8
+  ){
+    pointerMoved = true;
+  }
+
+},true);
+
+// Verwerk een klik of tik
+document.addEventListener('pointerup',function(event){
+
+  if(mode !== 'analysis' || !analysisGame) return;
+  if(pointerMoved) return;
+
+  const squareElement = event.target.closest('#board .square-55d63');
+
+  if(!squareElement) return;
+
+  handleSquareTap(squareElement.getAttribute('data-square'));
+
+},true);
+
+
 function handleSquareTap(square){
 
   if(mode !== 'analysis' || !analysisGame) return;
@@ -749,25 +795,21 @@ function handleSquareTap(square){
 
   const piece = analysisGame.get(square);
 
-  // Nog geen stuk geselecteerd
   if(!selectedSquare){
     selectSquare(square);
     return;
   }
 
-  // Dezelfde selectie opnieuw aantikken
   if(square === selectedSquare){
     clearSelection();
     return;
   }
 
-  // Een ander eigen stuk selecteren
   if(piece && piece.color === analysisGame.turn()){
     selectSquare(square);
     return;
   }
 
-  // Zet proberen uit te voeren
   const move = analysisGame.move({
     from:selectedSquare,
     to:square,
@@ -778,6 +820,7 @@ function handleSquareTap(square){
 
     analysisHistory.push(move.san);
     clearSelection();
+
     board.position(analysisGame.fen());
 
     setStatus(
@@ -791,34 +834,6 @@ function handleSquareTap(square){
     selectSquare(selectedSquare);
 
   }
-}
-
-// Op telefoons werken we met pointer-events
-const boardElement = document.getElementById('board');
-
-if(window.matchMedia('(pointer: coarse)').matches){
-
-  boardElement.addEventListener('pointerup',function(event){
-
-    const squareElement = event.target.closest('.square-55d63');
-
-    if(!squareElement) return;
-
-    event.preventDefault();
-
-    handleSquareTap(squareElement.getAttribute('data-square'));
-
-  },true);
-
-}else{
-
-  // Op computers blijft klikken en slepen mogelijk
-  $('#board').on('click','.square-55d63',function(){
-
-    handleSquareTap($(this).attr('data-square'));
-
-  });
-
 }
 
 function setMode(nextMode){
