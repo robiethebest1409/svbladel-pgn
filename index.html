@@ -94,8 +94,9 @@ button:disabled{opacity:.45;cursor:not-allowed}
   margin:8px auto;
 }
   /* Voorkom dat de pagina meescrollt tijdens analyse */
-#board.analysis-mode{
-  touch-action:none;
+#board.analysis-mode,
+#board.analysis-mode *{
+  touch-action:none !important;
   overscroll-behavior:contain;
   user-select:none;
   -webkit-user-select:none;
@@ -691,7 +692,7 @@ function show(n){
 const board = Chessboard('board',{
 
   position:'start',
-  draggable:true,
+  draggable: !window.matchMedia('(pointer: coarse)').matches,
 
   pieceTheme:'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
 
@@ -738,14 +739,12 @@ const board = Chessboard('board',{
 });
 
 
+
 /* Klikken en tikken om stukken te verplaatsen */
 
-function handleSquareTap(){
+function handleSquareTap(square){
 
   if(mode !== 'analysis' || !analysisGame) return;
-
-  const square = $(this).attr('data-square');
-
   if(!square) return;
 
   const piece = analysisGame.get(square);
@@ -756,19 +755,19 @@ function handleSquareTap(){
     return;
   }
 
-  // Tik op hetzelfde stuk: selectie opheffen
+  // Dezelfde selectie opnieuw aantikken
   if(square === selectedSquare){
     clearSelection();
     return;
   }
 
-  // Tik op een eigen stuk: ander stuk selecteren
+  // Een ander eigen stuk selecteren
   if(piece && piece.color === analysisGame.turn()){
     selectSquare(square);
     return;
   }
 
-  // Probeer de zet uit te voeren
+  // Zet proberen uit te voeren
   const move = analysisGame.move({
     from:selectedSquare,
     to:square,
@@ -778,9 +777,7 @@ function handleSquareTap(){
   if(move){
 
     analysisHistory.push(move.san);
-
     clearSelection();
-
     board.position(analysisGame.fen());
 
     setStatus(
@@ -791,17 +788,38 @@ function handleSquareTap(){
 
   }else{
 
-    // Ongeldige bestemming: selectie behouden
     selectSquare(selectedSquare);
 
   }
 }
 
-$('#board').on(
-  'click',
-  '.square-55d63',
-  handleSquareTap
-);
+// Op telefoons werken we met pointer-events
+const boardElement = document.getElementById('board');
+
+if(window.matchMedia('(pointer: coarse)').matches){
+
+  boardElement.addEventListener('pointerup',function(event){
+
+    const squareElement = event.target.closest('.square-55d63');
+
+    if(!squareElement) return;
+
+    event.preventDefault();
+
+    handleSquareTap(squareElement.getAttribute('data-square'));
+
+  },true);
+
+}else{
+
+  // Op computers blijft klikken en slepen mogelijk
+  $('#board').on('click','.square-55d63',function(){
+
+    handleSquareTap($(this).attr('data-square'));
+
+  });
+
+}
 
 function setMode(nextMode){
 
