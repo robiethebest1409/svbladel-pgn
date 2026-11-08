@@ -1,439 +1,593 @@
-
 <!DOCTYPE html>
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SV Bladel - PGN Publisher</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
+
 <style>
 *{box-sizing:border-box}
-body{font-family:Arial,sans-serif;background:#f2f4f7;color:#203040;margin:0;padding:20px}
-main{max-width:950px;margin:auto;background:white;padding:25px;border-radius:12px;box-shadow:0 3px 15px #0001}
-h1{color:#17324d;border-bottom:4px solid #d7a928;padding-bottom:12px}
-label{display:block;font-weight:bold;margin-top:16px;margin-bottom:6px}
-textarea,input{width:100%;padding:12px;border:1px solid #ccd4dc;border-radius:7px}
-textarea{height:210px;font:13px monospace}
-button{padding:11px 15px;margin:5px 4px 5px 0;border:0;border-radius:6px;background:#17324d;color:white;font-weight:bold;cursor:pointer}
+body{font-family:Arial,sans-serif;background:#f2f4f7;color:#203040;margin:0;padding:15px}
+main{max-width:950px;margin:20px auto;background:white;padding:22px;border-radius:12px;box-shadow:0 3px 15px #0001}
+h1,h2{color:#17324d}
+h1{border-bottom:4px solid #d7a928;padding-bottom:12px}
+label{display:block;font-weight:bold;margin:16px 0 6px}
+textarea,input{width:100%;padding:12px;border:1px solid #ccd4dc;border-radius:7px;font:inherit}
+textarea{height:230px;font:13px monospace}
+button{padding:10px 14px;margin:5px 4px 5px 0;border:0;border-radius:6px;background:#17324d;color:white;font-weight:bold;cursor:pointer}
 button.secondary{background:#e7edf3;color:#17324d}
-.info{background:#edf2f6;padding:15px;border-radius:7px;margin-top:15px;line-height:1.7}
+button:disabled{opacity:.45;cursor:not-allowed}
+.info{background:#edf2f6;padding:14px;border-radius:7px;margin-top:14px;line-height:1.6}
 .success{color:#187344}
 .error{color:#b42318}
-#output{height:300px}
-.small{color:#667788;font-size:13px}
+.small{font-size:13px;color:#667788}
+#output{height:160px}
+#board{width:100%;max-width:520px;margin:15px auto}
+.controls{text-align:center;margin:12px 0}
+#status{background:#edf2f6;padding:12px;border-radius:6px;margin:12px 0;text-align:center;font-weight:bold}
+#moves{max-height:220px;overflow:auto;border:1px solid #ddd;padding:8px;border-radius:6px;line-height:1.8}
+.move-button{background:#e8edf2;color:#17324d;padding:6px 9px}
+.move-button.active{background:#d7a928}
+[hidden]{display:none!important}
+@media(max-width:600px){body{padding:7px}main{padding:13px;margin:8px auto}}
 </style>
 </head>
+
 <body>
-<main>
+
+<!-- PUBLISHER -->
+<main id="publisher">
 <h1>SV Bladel – PGN Publisher</h1>
-<p>Upload een schaakpartij of plak hieronder de PGN. Genereer daarna de interactieve schaakviewer voor Blogger.</p>
+
+<p>Upload een schaakpartij of plak hieronder de PGN. Genereer daarna de code voor Blogger.</p>
 
 <label>PGN-bestand uploaden</label>
 <input type="file" id="file" accept=".pgn,.txt">
 
 <label>Of plak de PGN hier</label>
 <textarea id="pgn" placeholder='[Event "Interne competitie"]
-
 [White "Speler 1"]
 [Black "Speler 2"]
+[Result "*"]
 
-1. e4 e5 2. Nf3 Nc6 1-0'></textarea>
+1. e4 e5 2. Nf3 Nc6 *'></textarea>
 
 <button id="checkButton">Partij controleren</button>
 <div id="result"></div>
 
 <hr>
 
-<label>Titel van het Blogger-bericht</label>
+<label>Titel boven de schaakpartij</label>
 <input id="title" placeholder="Interne competitie – Ronde 9">
-<p class="small">Deze titel verschijnt boven het schaakbord.</p>
 
 <button id="generateButton">Genereer Blogger-code</button>
 
 <label>HTML voor Blogger</label>
 <textarea id="output" readonly placeholder="De HTML verschijnt hier..."></textarea>
+
 <button class="secondary" id="copyButton">Kopieer HTML</button>
 <div id="message"></div>
 </main>
 
+
+<!-- SCHAAKVIEWER -->
+<main id="viewer" hidden>
+
+<h2 id="gameTitle">Schaakpartij</h2>
+
+<p>
+<b>Wit:</b> <span id="whiteName"></span>
+&nbsp; · &nbsp;
+<b>Zwart:</b> <span id="blackName"></span>
+</p>
+
+<div id="board"></div>
+
+<div class="controls">
+<button id="first">|◀</button>
+<button id="prev">◀ Vorige</button>
+<button id="next">Volgende ▶</button>
+<button id="last">▶|</button>
+</div>
+
+<div class="controls">
+<button id="play">Afspelen</button>
+<button id="flip">Bord draaien</button>
+</div>
+
+<div class="controls">
+<button id="replay">Partij bekijken</button>
+<button id="analysis">Zelf analyseren</button>
+<button id="undo" disabled>Zet terug</button>
+</div>
+
+<div id="status">Partij wordt geladen...</div>
+<div id="moves"></div>
+
+<p class="small" id="resultLine"></p>
+<p class="small">
+In de analysemodus kun je zelf zetten proberen. Gebruik ‘Zet terug’ om een zet ongedaan te maken.
+</p>
+
+</main>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-<script>
-const fileInput=document.getElementById('file');
-const pgnInput=document.getElementById('pgn');
-const result=document.getElementById('result');
-const output=document.getElementById('output');
-const message=document.getElementById('message');
-
-let parsed=null;
-
-fileInput.addEventListener('change',async function(e){
- const file=e.target.files[0];
- if(file){
-  pgnInput.value=await file.text();
-  parsed=null;
-  result.textContent='PGN-bestand geladen. Klik op Partij controleren.';
- }
-});
-
-function getTag(pgn,name){
- const escaped=name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
- const match=pgn.match(new RegExp('\\['+escaped+'\\s+"([^"]*)"\\]'));
- return match?match[1]:'';
-}
-
-function safe(value){
- const div=document.createElement('div');
- div.textContent=String(value??'');
- return div.innerHTML;
-}
-
-function preview(){
- const pgn=pgnInput.value.trim();
-
- if(!pgn){
-  result.innerHTML='<p class="error">Vul eerst een PGN in.</p>';
-  parsed=null;
-  return false;
- }
-
- try{
-  const chess=new Chess();
-  const loaded=chess.load_pgn(pgn);
-
-  if(loaded===false)throw new Error('PGN kon niet worden ingelezen.');
-
-  const history=chess.history();
-  if(!history.length)throw new Error('Geen zetten gevonden in de PGN.');
-
-  parsed={
-   pgn:pgn,
-   white:getTag(pgn,'White')||'Wit',
-   black:getTag(pgn,'Black')||'Zwart',
-   event:getTag(pgn,'Event')||'Schaakpartij',
-   date:getTag(pgn,'Date')||'Onbekend',
-   round:getTag(pgn,'Round')||'Onbekend',
-   result:getTag(pgn,'Result')||'*',
-   count:history.length
-  };
-
-  document.getElementById('title').value=
-   parsed.event+' – '+parsed.white+' tegen '+parsed.black;
-
-  result.innerHTML=
-   '<div class="info success"><h3>Partij succesvol ingelezen!</h3>'+
-   '<b>Wit:</b> '+safe(parsed.white)+'<br>'+
-   '<b>Zwart:</b> '+safe(parsed.black)+'<br>'+
-   '<b>Datum:</b> '+safe(parsed.date)+'<br>'+
-   '<b>Ronde:</b> '+safe(parsed.round)+'<br>'+
-   '<b>Uitslag:</b> '+safe(parsed.result)+'<br>'+
-   '<b>Halve zetten:</b> '+parsed.count+'</div>';
-
-  return true;
- }catch(error){
-  parsed=null;
-  result.innerHTML='<div class="info error">Fout bij het lezen van de PGN: '+safe(error.message)+'</div>';
-  return false;
- }
-}
-
-document.getElementById('checkButton').addEventListener('click',preview);
-
-function generate(){
- if(!parsed&&!preview())return;
-
- const title=document.getElementById('title').value.trim()||'Schaakpartij';
- const pgn=JSON.stringify(parsed.pgn);
- const white=JSON.stringify(parsed.white);
- const black=JSON.stringify(parsed.black);
- const gameResult=JSON.stringify(parsed.result);
-
- const code=`<!-- SV Bladel interactieve schaakviewer -->
-<div id="svbladel-viewer" style="max-width:850px;margin:20px auto;font-family:Arial,sans-serif;color:#203040">
-<h2 style="color:#17324d">${safe(title)}</h2>
-<p><b>Wit:</b> ${safe(parsed.white)} &nbsp; · &nbsp; <b>Zwart:</b> ${safe(parsed.black)}</p>
-
-<div id="sv-board" style="width:100%;max-width:520px;margin:15px auto"></div>
-
-<div style="text-align:center;margin:12px 0">
-<button id="sv-first">|◀</button>
-<button id="sv-prev">◀ Vorige</button>
-<button id="sv-next">Volgende ▶</button>
-<button id="sv-last">▶|</button>
-</div>
-
-<div style="text-align:center;margin:12px 0">
-<button id="sv-play">Afspelen</button>
-<button id="sv-flip">Bord draaien</button>
-</div>
-
-<div style="text-align:center;margin:15px 0">
-<button id="sv-replay">Partij bekijken</button>
-<button id="sv-analysis">Zelf analyseren</button>
-<button id="sv-undo" disabled>Zet terug</button>
-</div>
-
-<div id="sv-status" style="background:#edf2f6;padding:12px;border-radius:6px;margin:12px 0;text-align:center;font-weight:bold">Partij wordt geladen...</div>
-<div id="sv-moves" style="max-height:220px;overflow:auto;border:1px solid #ddd;padding:8px;border-radius:6px"></div>
-
-<p style="font-size:12px;color:#667">Uitslag: ${safe(parsed.result)} · SV Bladel – Interactieve partijviewer</p>
-</div>
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"><\/script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"><\/script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"><\/script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
 
 <script>
 (function(){
-const pgn=${pgn};
-const white=${white};
-const black=${black};
-const result=${gameResult};
+'use strict';
 
-const game=new Chess();
-const loaded=game.load_pgn(pgn);
+const params = new URLSearchParams(window.location.search);
+const isViewer = params.get('view') === '1';
 
-if(loaded===false){
- document.getElementById('sv-status').textContent='Fout: PGN kon niet worden geladen.';
- return;
+function getTag(pgn,name){
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const match = pgn.match(new RegExp('\\['+escaped+'\\s+"([^"]*)"\\]'));
+  return match ? match[1] : '';
 }
 
-const history=game.history({verbose:true});
-const positions=[new Chess().fen()];
-const temp=new Chess();
+function safe(value){
+  const div = document.createElement('div');
+  div.textContent = String(value == null ? '' : value);
+  return div.innerHTML;
+}
+
+function showError(element,message){
+  element.textContent = message;
+  element.className = 'info error';
+}
+
+
+/* ---------------- PUBLISHER ---------------- */
+
+if(!isViewer){
+
+  const fileInput = document.getElementById('file');
+  const pgnInput = document.getElementById('pgn');
+  const resultBox = document.getElementById('result');
+  const output = document.getElementById('output');
+  const message = document.getElementById('message');
+
+  let parsed = null;
+
+  fileInput.addEventListener('change',async function(e){
+    const file = e.target.files[0];
+    if(!file) return;
+
+    pgnInput.value = await file.text();
+    parsed = null;
+    resultBox.textContent = 'PGN-bestand geladen. Klik op Partij controleren.';
+  });
+
+  function preview(){
+
+    const pgn = pgnInput.value.trim();
+
+    if(!pgn){
+      showError(resultBox,'Vul eerst een PGN in.');
+      parsed = null;
+      return false;
+    }
+
+    if(typeof Chess !== 'function'){
+      showError(resultBox,'De schaakbibliotheek kon niet worden geladen.');
+      return false;
+    }
+
+    try{
+      const chess = new Chess();
+      const loaded = chess.load_pgn(pgn);
+
+      if(loaded === false) throw new Error('PGN kon niet worden ingelezen.');
+
+      const history = chess.history();
+
+      if(!history.length) throw new Error('Geen zetten gevonden.');
+
+      parsed = {
+        pgn:pgn,
+        white:getTag(pgn,'White') || 'Wit',
+        black:getTag(pgn,'Black') || 'Zwart',
+        event:getTag(pgn,'Event') || 'Schaakpartij',
+        date:getTag(pgn,'Date') || 'Onbekend',
+        round:getTag(pgn,'Round') || 'Onbekend',
+        result:getTag(pgn,'Result') || '*',
+        count:history.length
+      };
+
+      document.getElementById('title').value =
+        parsed.event+' – '+parsed.white+' tegen '+parsed.black;
+
+      resultBox.className = 'info success';
+      resultBox.innerHTML =
+        '<b>Partij succesvol ingelezen!</b><br>'+
+        '<b>Wit:</b> '+safe(parsed.white)+'<br>'+
+        '<b>Zwart:</b> '+safe(parsed.black)+'<br>'+
+        '<b>Datum:</b> '+safe(parsed.date)+'<br>'+
+        '<b>Ronde:</b> '+safe(parsed.round)+'<br>'+
+        '<b>Uitslag:</b> '+safe(parsed.result)+'<br>'+
+        '<b>Halve zetten:</b> '+parsed.count;
+
+      return true;
+
+    }catch(error){
+      parsed = null;
+      showError(resultBox,'Fout bij het lezen van de PGN: '+error.message);
+      return false;
+    }
+  }
+
+  document.getElementById('checkButton').onclick = preview;
+
+  document.getElementById('generateButton').onclick = function(){
+
+    if(!parsed && !preview()) return;
+
+    const title = document.getElementById('title').value.trim() || 'Schaakpartij';
+
+    // Dezelfde GitHub Pages-pagina wordt nu als schaakviewer gebruikt.
+    const viewerUrl = new URL(window.location.href);
+    viewerUrl.search = '';
+    viewerUrl.hash = '';
+    viewerUrl.searchParams.set('view','1');
+    viewerUrl.searchParams.set('pgn',parsed.pgn);
+    viewerUrl.searchParams.set('title',title);
+
+    const embed =
+      '<!-- SV Bladel interactieve schaakviewer -->\n'+
+      '<iframe src="'+viewerUrl.href+'" '+
+      'style="width:100%;max-width:900px;height:950px;border:0;display:block;margin:20px auto" '+
+      'loading="lazy" title="Interactieve schaakpartij SV Bladel"></iframe>';
+
+    output.value = embed;
+
+    message.className = 'info success';
+    message.textContent =
+      'Blogger-code gemaakt! Kopieer deze en plak hem in Blogger in HTML-weergave.';
+  };
+
+  document.getElementById('copyButton').onclick = async function(){
+
+    if(!output.value){
+      message.textContent = 'Genereer eerst de Blogger-code.';
+      return;
+    }
+
+    try{
+      await navigator.clipboard.writeText(output.value);
+      message.className = 'info success';
+      message.textContent = 'HTML succesvol gekopieerd!';
+    }catch(error){
+      output.focus();
+      output.select();
+      message.textContent = 'De code is geselecteerd. Kopieer met Ctrl+C.';
+    }
+  };
+
+  return;
+}
+
+
+/* ---------------- SCHAAKVIEWER ---------------- */
+
+document.getElementById('publisher').hidden = true;
+document.getElementById('viewer').hidden = false;
+
+const statusEl = document.getElementById('status');
+
+if(typeof Chess !== 'function' ||
+   typeof Chessboard !== 'function' ||
+   typeof jQuery === 'undefined'){
+
+  showError(statusEl,'De schaakbibliotheken zijn niet geladen. Ververs de pagina en probeer opnieuw.');
+  return;
+}
+
+const pgn = params.get('pgn') || '';
+const title = params.get('title') || 'Schaakpartij';
+
+document.getElementById('gameTitle').textContent = title;
+
+let game;
+
+try{
+  game = new Chess();
+  const loaded = game.load_pgn(pgn);
+
+  if(loaded === false || !game.history().length){
+    throw new Error('Geen geldige zetten gevonden.');
+  }
+
+}catch(error){
+  showError(statusEl,'PGN kon niet worden geladen: '+error.message);
+  return;
+}
+
+const history = game.history({verbose:true});
+const positions = [new Chess().fen()];
+const temp = new Chess();
 
 history.forEach(function(move){
- temp.move(move);
- positions.push(temp.fen());
+  temp.move(move);
+  positions.push(temp.fen());
 });
 
-let index=0;
-let mode='replay';
-let timer=null;
-let analysisGame=null;
-let analysisHistory=[];
+const white = getTag(pgn,'White') || 'Wit';
+const black = getTag(pgn,'Black') || 'Zwart';
+const result = getTag(pgn,'Result') || '*';
 
-const statusEl=document.getElementById('sv-status');
-const movesEl=document.getElementById('sv-moves');
-const playButton=document.getElementById('sv-play');
-const undoButton=document.getElementById('sv-undo');
+document.getElementById('whiteName').textContent = white;
+document.getElementById('blackName').textContent = black;
+document.getElementById('resultLine').textContent =
+  'Uitslag: '+result+' · SV Bladel – Interactieve partijviewer';
 
-function status(text){
- statusEl.textContent=text;
-}
+let index = 0;
+let mode = 'replay';
+let timer = null;
+let analysisGame = null;
+let analysisHistory = [];
+
+const movesEl = document.getElementById('moves');
+const playButton = document.getElementById('play');
+const undoButton = document.getElementById('undo');
 
 function stopTimer(){
- if(timer){
-  clearInterval(timer);
-  timer=null;
- }
- playButton.textContent='Afspelen';
+  if(timer){
+    clearInterval(timer);
+    timer = null;
+  }
+  playButton.textContent = 'Afspelen';
+}
+
+function setStatus(text){
+  statusEl.textContent = text;
 }
 
 function renderMoves(){
- movesEl.innerHTML='';
 
- if(mode==='analysis'){
-  const heading=document.createElement('b');
-  heading.textContent='Eigen analyse';
-  movesEl.appendChild(heading);
+  movesEl.innerHTML = '';
 
-  const line=document.createElement('div');
-  line.style.marginTop='8px';
+  if(mode === 'analysis'){
 
-  line.textContent=analysisHistory.length
-   ?analysisHistory.map(function(move,i){
-      return (Math.floor(i/2)+1)+(i%2===0?'. ':'... ')+move;
-     }).join(' ')
-   :'Je hebt nog geen eigen zetten gespeeld.';
+    const heading = document.createElement('b');
+    heading.textContent = 'Eigen analyse';
+    movesEl.appendChild(heading);
 
-  movesEl.appendChild(line);
-  return;
- }
+    const line = document.createElement('div');
+    line.style.marginTop = '8px';
 
- for(let i=0;i<history.length;i+=2){
-  const row=document.createElement('div');
-  row.style.padding='5px';
-  row.style.borderBottom='1px solid #ddd';
+    line.textContent = analysisHistory.length
+      ? analysisHistory.map(function(move,i){
+          return (Math.floor(i/2)+1)+(i%2===0?'. ':'... ')+move;
+        }).join(' ')
+      : 'Je hebt nog geen eigen zetten gespeeld.';
 
-  const number=document.createElement('b');
-  number.textContent=(Math.floor(i/2)+1)+'. ';
-  row.appendChild(number);
+    movesEl.appendChild(line);
+    return;
+  }
 
-  [i,i+1].forEach(function(j){
-   if(!history[j])return;
+  for(let i=0;i<history.length;i+=2){
 
-   const button=document.createElement('button');
-   button.textContent=history[j].san;
-   button.style.margin='3px';
-   button.style.padding='6px 9px';
-   button.style.background=index===j+1?'#d7a928':'#e8edf2';
-   button.style.color='#17324d';
-   button.onclick=function(){show(j+1);};
-   row.appendChild(button);
-  });
+    const row = document.createElement('div');
+    row.style.padding = '4px';
 
-  movesEl.appendChild(row);
- }
+    const number = document.createElement('b');
+    number.textContent = (Math.floor(i/2)+1)+'. ';
+    row.appendChild(number);
+
+    [i,i+1].forEach(function(j){
+
+      if(!history[j]) return;
+
+      const button = document.createElement('button');
+      button.className = 'move-button'+(index===j+1?' active':'');
+      button.textContent = history[j].san;
+
+      button.onclick = function(){
+        show(j+1);
+      };
+
+      row.appendChild(button);
+    });
+
+    movesEl.appendChild(row);
+  }
 }
 
 function show(n){
- stopTimer();
- index=Math.max(0,Math.min(history.length,n));
- board.position(positions[index]);
 
- status('Zet '+index+' van '+history.length+
-  (index===0?' · Beginstelling':' · '+history[index-1].san));
+  stopTimer();
 
- renderMoves();
+  index = Math.max(0,Math.min(history.length,n));
+
+  board.position(positions[index]);
+
+  setStatus(
+    'Zet '+index+' van '+history.length+
+    (index===0?' · Beginstelling':' · '+history[index-1].san)
+  );
+
+  renderMoves();
 }
 
-const board=Chessboard('sv-board',{
- position:'start',
- draggable:true,
- pieceTheme:'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
 
- onDragStart:function(source,piece){
-  if(mode!=='analysis')return false;
-  if(analysisGame.game_over())return false;
+/* Het bord wordt op GitHub Pages aangemaakt. */
 
-  if((analysisGame.turn()==='w'&&piece.charAt(0)!=='w')||
-     (analysisGame.turn()==='b'&&piece.charAt(0)!=='b')){
-   return false;
+const board = Chessboard('board',{
+
+  position:'start',
+  draggable:true,
+
+  pieceTheme:'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
+
+  onDragStart:function(source,piece){
+
+    if(mode !== 'analysis' || !analysisGame) return false;
+    if(analysisGame.game_over()) return false;
+
+    if((analysisGame.turn()==='w' && piece.charAt(0)!=='w') ||
+       (analysisGame.turn()==='b' && piece.charAt(0)!=='b')){
+      return false;
+    }
+
+    return true;
+  },
+
+  onDrop:function(from,to){
+
+    if(mode !== 'analysis' || !analysisGame) return 'snapback';
+
+    const move = analysisGame.move({
+      from:from,
+      to:to,
+      promotion:'q'
+    });
+
+    if(!move) return 'snapback';
+
+    analysisHistory.push(move.san);
+
+    setStatus('Analysemodus · '+(analysisGame.turn()==='w'?white:black)+' aan zet');
+
+    renderMoves();
+  },
+
+  onSnapEnd:function(){
+
+    if(mode==='analysis' && analysisGame){
+      board.position(analysisGame.fen());
+    }
   }
-  return true;
- },
-
- onDrop:function(from,to){
-  if(mode!=='analysis')return 'snapback';
-
-  const move=analysisGame.move({
-   from:from,
-   to:to,
-   promotion:'q'
-  });
-
-  if(!move)return 'snapback';
-
-  analysisHistory.push(move.san);
-  status('Analysemodus · '+(analysisGame.turn()==='w'?white:black)+' aan zet');
-  renderMoves();
- },
-
- onSnapEnd:function(){
-  if(mode==='analysis')board.position(analysisGame.fen());
- }
 });
 
-function setMode(newMode){
- stopTimer();
- mode=newMode;
 
- if(mode==='analysis'){
-  analysisGame=new Chess(positions[index]);
-  analysisHistory=[];
-  board.position(analysisGame.fen());
-  undoButton.disabled=false;
-  status('Analysemodus · '+(analysisGame.turn()==='w'?white:black)+' aan zet');
-  renderMoves();
- }else{
-  analysisGame=null;
-  analysisHistory=[];
-  undoButton.disabled=true;
-  show(index);
- }
+function setMode(nextMode){
+
+  stopTimer();
+  mode = nextMode;
+
+  if(mode==='analysis'){
+
+    analysisGame = new Chess(positions[index]);
+    analysisHistory = [];
+
+    board.position(analysisGame.fen());
+
+    undoButton.disabled = false;
+
+    setStatus('Analysemodus · '+(analysisGame.turn()==='w'?white:black)+' aan zet');
+
+    renderMoves();
+
+  }else{
+
+    analysisGame = null;
+    analysisHistory = [];
+
+    undoButton.disabled = true;
+
+    show(index);
+  }
 }
 
-document.getElementById('sv-first').onclick=function(){
- if(mode==='analysis')setMode('replay');
- show(0);
+
+/* Bedieningsknoppen */
+
+document.getElementById('first').onclick = function(){
+  if(mode==='analysis') setMode('replay');
+  show(0);
 };
 
-document.getElementById('sv-prev').onclick=function(){
- if(mode==='analysis')setMode('replay');
- show(index-1);
+document.getElementById('prev').onclick = function(){
+  if(mode==='analysis') setMode('replay');
+  show(index-1);
 };
 
-document.getElementById('sv-next').onclick=function(){
- if(mode==='analysis')setMode('replay');
- show(index+1);
+document.getElementById('next').onclick = function(){
+  if(mode==='analysis') setMode('replay');
+  show(index+1);
 };
 
-document.getElementById('sv-last').onclick=function(){
- if(mode==='analysis')setMode('replay');
- show(history.length);
+document.getElementById('last').onclick = function(){
+  if(mode==='analysis') setMode('replay');
+  show(history.length);
 };
 
-document.getElementById('sv-flip').onclick=function(){board.flip();};
-document.getElementById('sv-replay').onclick=function(){setMode('replay');};
-document.getElementById('sv-analysis').onclick=function(){setMode('analysis');};
-
-undoButton.onclick=function(){
- if(mode!=='analysis')return;
-
- const undone=analysisGame.undo();
- if(undone)analysisHistory.pop();
-
- board.position(analysisGame.fen());
- status('Analysemodus · '+(analysisGame.turn()==='w'?white:black)+' aan zet');
- renderMoves();
+document.getElementById('flip').onclick = function(){
+  board.flip();
 };
 
-playButton.onclick=function(){
- if(mode==='analysis')setMode('replay');
+document.getElementById('replay').onclick = function(){
+  setMode('replay');
+};
 
- if(timer){
-  stopTimer();
-  return;
- }
+document.getElementById('analysis').onclick = function(){
+  setMode('analysis');
+};
 
- if(index>=history.length)show(0);
+undoButton.onclick = function(){
 
- playButton.textContent='Pauzeren';
+  if(mode!=='analysis' || !analysisGame) return;
 
- timer=setInterval(function(){
-  if(index>=history.length){
-   stopTimer();
-   return;
+  const undone = analysisGame.undo();
+
+  if(undone) analysisHistory.pop();
+
+  board.position(analysisGame.fen());
+
+  setStatus('Analysemodus · '+(analysisGame.turn()==='w'?white:black)+' aan zet');
+
+  renderMoves();
+};
+
+
+playButton.onclick = function(){
+
+  if(mode==='analysis') setMode('replay');
+
+  if(timer){
+    stopTimer();
+    return;
   }
 
-  index++;
-  board.position(positions[index]);
-  status('Zet '+index+' van '+history.length);
-  renderMoves();
+  if(index>=history.length) show(0);
 
-  if(index>=history.length)stopTimer();
- },1000);
+  playButton.textContent = 'Pauzeren';
+
+  timer = setInterval(function(){
+
+    if(index>=history.length){
+      stopTimer();
+      return;
+    }
+
+    index++;
+
+    board.position(positions[index]);
+
+    setStatus('Zet '+index+' van '+history.length);
+
+    renderMoves();
+
+    if(index>=history.length) stopTimer();
+
+  },1000);
 };
 
+
 show(0);
+
+window.addEventListener('resize',function(){
+  board.resize();
+});
+
 })();
-<\/script>
-<!-- Einde SV Bladel schaakviewer -->`;
-
- output.value=code;
- message.innerHTML='<p class="success">Blogger-code gegenereerd! Kopieer de HTML hieronder naar je Blogger-bericht in HTML-weergave.</p>';
-}
-
-document.getElementById('generateButton').addEventListener('click',generate);
-
-async function copyCode(){
- if(!output.value){
-  message.textContent='Genereer eerst de Blogger-code.';
-  return;
- }
-
- try{
-  await navigator.clipboard.writeText(output.value);
-  message.innerHTML='<p class="success">HTML succesvol gekopieerd!</p>';
- }catch(error){
-  output.focus();
-  output.select();
-  document.execCommand('copy');
-  message.innerHTML='<p class="success">HTML gekopieerd of geselecteerd. Kopieer eventueel met Ctrl+C.</p>';
- }
-}
-
-document.getElementById('copyButton').addEventListener('click',copyCode);
 </script>
+
 </body>
 </html>
