@@ -286,7 +286,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
   <button id="first" title="Eerste zet">|◀</button>
   <button id="prev" title="Vorige zet">◀</button>
   <button id="play" title="Afspelen">▶</button>
-  <button id="next" title="Volgende zet">▶</button>
+  <button id="next" title="Volgende zet">▷</button>
   <button id="last" title="Laatste zet">▶|</button>
   <button id="flip" title="Bord draaien">🔄</button>
 </div>
@@ -748,7 +748,7 @@ playButton.onclick = function(){
 
   if(index>=history.length) show(0);
 
- playButton.textContent = 'Ⅱ';
+playButton.textContent = 'Ⅱ';
 playButton.title = 'Pauzeren';
 
   timer = setInterval(function(){
