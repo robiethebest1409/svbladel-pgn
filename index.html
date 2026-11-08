@@ -93,6 +93,13 @@ button:disabled{opacity:.45;cursor:not-allowed}
   max-width:350px;
   margin:8px auto;
 }
+  /* Voorkom dat de pagina meescrollt tijdens analyse */
+#board.analysis-mode{
+  touch-action:none;
+  overscroll-behavior:contain;
+  user-select:none;
+  -webkit-user-select:none;
+}
 
 /* Schaakstukken netjes centreren */
 #board .piece-417db{
@@ -731,11 +738,23 @@ const board = Chessboard('board',{
 });
 
 
-/* Klikken om stukken te verplaatsen */
+/* Klikken en tikken om stukken te verplaatsen */
 
-$('#board').on('click','.square-55d63',function(){
+let lastTouchTime = 0;
+
+function handleSquareTap(event){
 
   if(mode !== 'analysis' || !analysisGame) return;
+
+  // Voorkom dat een mobiele tik dubbel wordt verwerkt
+  if(event.type === 'click' && Date.now()-lastTouchTime < 500){
+    return;
+  }
+
+  if(event.type === 'touchend'){
+    lastTouchTime = Date.now();
+    event.preventDefault();
+  }
 
   const square = $(this).attr('data-square');
 
@@ -749,13 +768,19 @@ $('#board').on('click','.square-55d63',function(){
     return;
   }
 
-  // Klik op een eigen stuk: selecteer dat stuk opnieuw
+  // Tik op hetzelfde stuk: selectie opheffen
+  if(square === selectedSquare){
+    clearSelection();
+    return;
+  }
+
+  // Tik op een eigen stuk: selecteer dat stuk
   if(piece && piece.color === analysisGame.turn()){
     selectSquare(square);
     return;
   }
 
-  // Probeer het geselecteerde stuk te verplaatsen
+  // Probeer de zet uit te voeren
   const move = analysisGame.move({
     from:selectedSquare,
     to:square,
@@ -782,15 +807,47 @@ $('#board').on('click','.square-55d63',function(){
     selectSquare(selectedSquare);
 
   }
+}
+
+$('#board').on(
+  'click touchend',
+  '.square-55d63',
+  handleSquareTap
+);
+
+  if(move){
+
+    analysisHistory.push(move.san);
+
+    clearSelection();
+
+    board.position(analysisGame.fen());
+
+    setStatus(
+      'Analysemodus · '+(analysisGame.turn()==='w'?white:black)+' aan zet'
+    );
+
+    renderMoves();
+
+  }else{
+
+    // Ongeldige bestemming: selectie behouden
+    selectSquare(selectedSquare);
+
+  }
 
 });
-
 
 function setMode(nextMode){
 
   stopTimer();
   clearSelection();
   mode = nextMode;
+
+  document.getElementById('board').classList.toggle(
+    'analysis-mode',
+    mode === 'analysis'
+  );
 
   if(mode==='analysis'){
 
