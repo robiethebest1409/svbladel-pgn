@@ -23,8 +23,16 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .success{color:#187344}
 .error{color:#b42318}
 .small{font-size:13px;color:#667788}
-#output{height:160px}
-#board{width:100%;max-width:520px;margin:15px auto}
+#output{height:160px}#board{
+  width:100%;
+  max-width:420px;
+  margin:15px auto;
+  /* Schaakstukken netjes centreren */
+#board .piece-417db{
+  background-position:center center !important;
+  background-repeat:no-repeat !important;
+  background-size:88% 88% !important;
+}
 .controls{text-align:center;margin:12px 0}
 #status{background:#edf2f6;padding:12px;border-radius:6px;margin:12px 0;text-align:center;font-weight:bold}
 #moves{max-height:220px;overflow:auto;border:1px solid #ddd;padding:8px;border-radius:6px;line-height:1.8}
