@@ -5,96 +5,27 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SV Bladel - PGN Publisher</title>
-
 <style>
 *{box-sizing:border-box}
-body{
- font-family:Arial,sans-serif;
- background:#f2f4f7;
- color:#203040;
- margin:0;
- padding:20px;
-}
-main{
- max-width:950px;
- margin:auto;
- background:white;
- padding:25px;
- border-radius:12px;
- box-shadow:0 3px 15px #00000012;
-}
-h1{
- color:#17324d;
- border-bottom:4px solid #d7a928;
- padding-bottom:12px;
-}
-label{
- display:block;
- font-weight:bold;
- margin-top:16px;
- margin-bottom:6px;
-}
-textarea,input{
- width:100%;
- padding:12px;
- font:14px Arial,sans-serif;
- border:1px solid #ccd4dc;
- border-radius:7px;
-}
-textarea{
- height:210px;
- font-family:monospace;
-}
-button{
- padding:11px 15px;
- margin:5px 4px 5px 0;
- border-radius:6px;
- border:0;
- background:#17324d;
- color:white;
- cursor:pointer;
- font-weight:bold;
-}
-button.secondary{
- background:#e7edf3;
- color:#17324d;
-}
-button:disabled{
- opacity:.45;
- cursor:not-allowed;
-}
-.info{
- background:#edf2f6;
- padding:15px;
- border-radius:7px;
- margin-top:15px;
- line-height:1.7;
-}
+body{font-family:Arial,sans-serif;background:#f2f4f7;color:#203040;margin:0;padding:20px}
+main{max-width:950px;margin:auto;background:white;padding:25px;border-radius:12px;box-shadow:0 3px 15px #0001}
+h1{color:#17324d;border-bottom:4px solid #d7a928;padding-bottom:12px}
+label{display:block;font-weight:bold;margin-top:16px;margin-bottom:6px}
+textarea,input{width:100%;padding:12px;border:1px solid #ccd4dc;border-radius:7px}
+textarea{height:210px;font:13px monospace}
+button{padding:11px 15px;margin:5px 4px 5px 0;border:0;border-radius:6px;background:#17324d;color:white;font-weight:bold;cursor:pointer}
+button.secondary{background:#e7edf3;color:#17324d}
+.info{background:#edf2f6;padding:15px;border-radius:7px;margin-top:15px;line-height:1.7}
 .success{color:#187344}
 .error{color:#b42318}
 #output{height:300px}
-.small{
- color:#667788;
- font-size:13px;
-}
-hr{
- border:0;
- border-top:1px solid #ddd;
- margin:25px 0;
-}
+.small{color:#667788;font-size:13px}
 </style>
 </head>
-
 <body>
 <main>
-
 <h1>SV Bladel – PGN Publisher</h1>
-
-<p>
-Upload een schaakpartij of plak hieronder de PGN.
-Met deze pagina maak je eenvoudig een interactieve schaakviewer
-voor de website van SV Bladel.
-</p>
+<p>Upload een schaakpartij of plak hieronder de PGN. Genereer daarna de interactieve schaakviewer voor Blogger.</p>
 
 <label>PGN-bestand uploaden</label>
 <input type="file" id="file" accept=".pgn,.txt">
@@ -107,33 +38,24 @@ voor de website van SV Bladel.
 
 1. e4 e5 2. Nf3 Nc6 1-0'></textarea>
 
-<br>
 <button id="checkButton">Partij controleren</button>
-
 <div id="result"></div>
 
 <hr>
 
 <label>Titel van het Blogger-bericht</label>
 <input id="title" placeholder="Interne competitie – Ronde 9">
-
-<p class="small">
-Deze titel wordt boven het schaakbord op Blogger weergegeven.
-</p>
+<p class="small">Deze titel verschijnt boven het schaakbord.</p>
 
 <button id="generateButton">Genereer Blogger-code</button>
 
 <label>HTML voor Blogger</label>
 <textarea id="output" readonly placeholder="De HTML verschijnt hier..."></textarea>
-
 <button class="secondary" id="copyButton">Kopieer HTML</button>
-
 <div id="message"></div>
-
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-
 <script>
 const fileInput=document.getElementById('file');
 const pgnInput=document.getElementById('pgn');
@@ -154,8 +76,7 @@ fileInput.addEventListener('change',async function(e){
 
 function getTag(pgn,name){
  const escaped=name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
- const re=new RegExp('\\['+escaped+'\\s+"([^"]*)"\\]');
- const match=pgn.match(re);
+ const match=pgn.match(new RegExp('\\['+escaped+'\\s+"([^"]*)"\\]'));
  return match?match[1]:'';
 }
 
@@ -178,15 +99,10 @@ function preview(){
   const chess=new Chess();
   const loaded=chess.load_pgn(pgn);
 
-  if(loaded===false){
-   throw new Error('De PGN kon niet worden ingelezen.');
-  }
+  if(loaded===false)throw new Error('PGN kon niet worden ingelezen.');
 
   const history=chess.history();
-
-  if(history.length===0){
-   throw new Error('Er zijn geen zetten gevonden in deze PGN.');
-  }
+  if(!history.length)throw new Error('Geen zetten gevonden in de PGN.');
 
   parsed={
    pgn:pgn,
@@ -203,23 +119,18 @@ function preview(){
    parsed.event+' – '+parsed.white+' tegen '+parsed.black;
 
   result.innerHTML=
-   '<div class="info success">'+
-   '<h3>Partij succesvol ingelezen!</h3>'+
+   '<div class="info success"><h3>Partij succesvol ingelezen!</h3>'+
    '<b>Wit:</b> '+safe(parsed.white)+'<br>'+
    '<b>Zwart:</b> '+safe(parsed.black)+'<br>'+
    '<b>Datum:</b> '+safe(parsed.date)+'<br>'+
    '<b>Ronde:</b> '+safe(parsed.round)+'<br>'+
    '<b>Uitslag:</b> '+safe(parsed.result)+'<br>'+
-   '<b>Aantal halve zetten:</b> '+parsed.count+
-   '</div>';
+   '<b>Halve zetten:</b> '+parsed.count+'</div>';
 
   return true;
-
  }catch(error){
   parsed=null;
-  result.innerHTML=
-   '<div class="info error">Fout bij het lezen van de PGN: '+
-   safe(error.message)+'</div>';
+  result.innerHTML='<div class="info error">Fout bij het lezen van de PGN: '+safe(error.message)+'</div>';
   return false;
  }
 }
@@ -227,81 +138,58 @@ function preview(){
 document.getElementById('checkButton').addEventListener('click',preview);
 
 function generate(){
-
- if(!parsed){
-  if(!preview())return;
- }
+ if(!parsed&&!preview())return;
 
  const title=document.getElementById('title').value.trim()||'Schaakpartij';
-
  const pgn=JSON.stringify(parsed.pgn);
  const white=JSON.stringify(parsed.white);
  const black=JSON.stringify(parsed.black);
- const resultText=JSON.stringify(parsed.result);
- const safeTitle=safe(title);
+ const gameResult=JSON.stringify(parsed.result);
 
  const code=`<!-- SV Bladel interactieve schaakviewer -->
-
 <div id="svbladel-viewer" style="max-width:850px;margin:20px auto;font-family:Arial,sans-serif;color:#203040">
+<h2 style="color:#17324d">${safe(title)}</h2>
+<p><b>Wit:</b> ${safe(parsed.white)} &nbsp; · &nbsp; <b>Zwart:</b> ${safe(parsed.black)}</p>
 
- <h2 style="color:#17324d">${safeTitle}</h2>
+<div id="sv-board" style="width:100%;max-width:520px;margin:15px auto"></div>
 
- <p>
-  <b>Wit:</b> ${safe(parsed.white)}
-  &nbsp; · &nbsp;
-  <b>Zwart:</b> ${safe(parsed.black)}
- </p>
+<div style="text-align:center;margin:12px 0">
+<button id="sv-first">|◀</button>
+<button id="sv-prev">◀ Vorige</button>
+<button id="sv-next">Volgende ▶</button>
+<button id="sv-last">▶|</button>
+</div>
 
- <div id="sv-board" style="width:100%;max-width:520px;margin:15px auto"></div>
+<div style="text-align:center;margin:12px 0">
+<button id="sv-play">Afspelen</button>
+<button id="sv-flip">Bord draaien</button>
+</div>
 
- <div style="text-align:center;margin:12px 0">
-  <button id="sv-first">|◀</button>
-  <button id="sv-prev">◀ Vorige</button>
-  <button id="sv-next">Volgende ▶</button>
-  <button id="sv-last">▶|</button>
- </div>
+<div style="text-align:center;margin:15px 0">
+<button id="sv-replay">Partij bekijken</button>
+<button id="sv-analysis">Zelf analyseren</button>
+<button id="sv-undo" disabled>Zet terug</button>
+</div>
 
- <div style="text-align:center;margin:12px 0">
-  <button id="sv-play">Afspelen</button>
-  <button id="sv-flip">Bord draaien</button>
- </div>
+<div id="sv-status" style="background:#edf2f6;padding:12px;border-radius:6px;margin:12px 0;text-align:center;font-weight:bold">Partij wordt geladen...</div>
+<div id="sv-moves" style="max-height:220px;overflow:auto;border:1px solid #ddd;padding:8px;border-radius:6px"></div>
 
- <div style="text-align:center;margin:15px 0">
-  <button id="sv-replay">Partij bekijken</button>
-  <button id="sv-analysis">Zelf analyseren</button>
-  <button id="sv-undo" disabled>Zet terug</button>
- </div>
-
- <div id="sv-status" style="background:#edf2f6;padding:12px;border-radius:6px;margin:12px 0;text-align:center;font-weight:bold">
-  Partij wordt geladen...
- </div>
-
- <div id="sv-moves" style="max-height:220px;overflow:auto;border:1px solid #ddd;padding:8px;border-radius:6px"></div>
-
- <p style="font-size:12px;color:#667;margin-top:15px">
-  Uitslag: ${safe(parsed.result)} · SV Bladel – Interactieve partijviewer
- </p>
-
- <p style="font-size:12px;color:#667">
-  In de analysemodus kun je zelf zetten proberen. Gebruik Zet terug om een zet ongedaan te maken.
- </p>
-
+<p style="font-size:12px;color:#667">Uitslag: ${safe(parsed.result)} · SV Bladel – Interactieve partijviewer</p>
 </div>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"><\\/script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"><\\/script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"><\\/script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"><\/script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"><\/script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"><\/script>
 
 <script>
 (function(){
-
 const pgn=${pgn};
 const white=${white};
 const black=${black};
-const game=new Chess();
+const result=${gameResult};
 
+const game=new Chess();
 const loaded=game.load_pgn(pgn);
 
 if(loaded===false){
@@ -324,13 +212,13 @@ let timer=null;
 let analysisGame=null;
 let analysisHistory=[];
 
-const statusElement=document.getElementById('sv-status');
-const movesElement=document.getElementById('sv-moves');
+const statusEl=document.getElementById('sv-status');
+const movesEl=document.getElementById('sv-moves');
 const playButton=document.getElementById('sv-play');
 const undoButton=document.getElementById('sv-undo');
 
 function status(text){
- statusElement.textContent=text;
+ statusEl.textContent=text;
 }
 
 function stopTimer(){
@@ -342,32 +230,27 @@ function stopTimer(){
 }
 
 function renderMoves(){
-
- movesElement.innerHTML='';
+ movesEl.innerHTML='';
 
  if(mode==='analysis'){
-
   const heading=document.createElement('b');
   heading.textContent='Eigen analyse';
-  movesElement.appendChild(heading);
+  movesEl.appendChild(heading);
 
   const line=document.createElement('div');
   line.style.marginTop='8px';
 
-  if(analysisHistory.length===0){
-   line.textContent='Je hebt nog geen eigen zetten gespeeld.';
-  }else{
-   line.textContent=analysisHistory.map(function(move,i){
-    return (Math.floor(i/2)+1)+(i%2===0?'. ':'... ')+move;
-   }).join(' ');
-  }
+  line.textContent=analysisHistory.length
+   ?analysisHistory.map(function(move,i){
+      return (Math.floor(i/2)+1)+(i%2===0?'. ':'... ')+move;
+     }).join(' ')
+   :'Je hebt nog geen eigen zetten gespeeld.';
 
-  movesElement.appendChild(line);
+  movesEl.appendChild(line);
   return;
  }
 
  for(let i=0;i<history.length;i+=2){
-
   const row=document.createElement('div');
   row.style.padding='5px';
   row.style.borderBottom='1px solid #ddd';
@@ -377,7 +260,6 @@ function renderMoves(){
   row.appendChild(number);
 
   [i,i+1].forEach(function(j){
-
    if(!history[j])return;
 
    const button=document.createElement('button');
@@ -386,89 +268,42 @@ function renderMoves(){
    button.style.padding='6px 9px';
    button.style.background=index===j+1?'#d7a928':'#e8edf2';
    button.style.color='#17324d';
-
-   button.addEventListener('click',function(){
-    show(j+1);
-   });
-
+   button.onclick=function(){show(j+1);};
    row.appendChild(button);
   });
 
-  movesElement.appendChild(row);
+  movesEl.appendChild(row);
  }
 }
 
 function show(n){
-
  stopTimer();
-
  index=Math.max(0,Math.min(history.length,n));
-
  board.position(positions[index]);
 
- status(
-  'Zet '+index+' van '+history.length+
-  ' · '+(index===0?'Beginstelling':history[index-1].san)
- );
-
- renderMoves();
-}
-
-function setMode(newMode){
-
- stopTimer();
- mode=newMode;
-
- if(mode==='analysis'){
-
-  analysisGame=new Chess(positions[index]);
-  analysisHistory=[];
-  board.position(analysisGame.fen());
-
-  undoButton.disabled=false;
-
-  status(
-   'Analysemodus · '+
-   (analysisGame.turn()==='w'?white:black)+
-   ' aan zet'
-  );
-
- }else{
-
-  analysisGame=null;
-  analysisHistory=[];
-  undoButton.disabled=true;
-  show(index);
- }
+ status('Zet '+index+' van '+history.length+
+  (index===0?' · Beginstelling':' · '+history[index-1].san));
 
  renderMoves();
 }
 
 const board=Chessboard('sv-board',{
-
  position:'start',
  draggable:true,
-
  pieceTheme:'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
 
  onDragStart:function(source,piece){
-
   if(mode!=='analysis')return false;
-
   if(analysisGame.game_over())return false;
 
-  if(
-   (analysisGame.turn()==='w' && piece.charAt(0)!=='w') ||
-   (analysisGame.turn()==='b' && piece.charAt(0)!=='b')
-  ){
+  if((analysisGame.turn()==='w'&&piece.charAt(0)!=='w')||
+     (analysisGame.turn()==='b'&&piece.charAt(0)!=='b')){
    return false;
   }
-
   return true;
  },
 
  onDrop:function(from,to){
-
   if(mode!=='analysis')return 'snapback';
 
   const move=analysisGame.move({
@@ -480,80 +315,70 @@ const board=Chessboard('sv-board',{
   if(!move)return 'snapback';
 
   analysisHistory.push(move.san);
-
-  status(
-   'Analysemodus · '+
-   (analysisGame.turn()==='w'?white:black)+
-   ' aan zet'
-  );
-
+  status('Analysemodus · '+(analysisGame.turn()==='w'?white:black)+' aan zet');
   renderMoves();
  },
 
  onSnapEnd:function(){
-
-  if(mode==='analysis'){
-   board.position(analysisGame.fen());
-  }
+  if(mode==='analysis')board.position(analysisGame.fen());
  }
-
 });
 
-document.getElementById('sv-first').addEventListener('click',function(){
+function setMode(newMode){
+ stopTimer();
+ mode=newMode;
+
+ if(mode==='analysis'){
+  analysisGame=new Chess(positions[index]);
+  analysisHistory=[];
+  board.position(analysisGame.fen());
+  undoButton.disabled=false;
+  status('Analysemodus · '+(analysisGame.turn()==='w'?white:black)+' aan zet');
+  renderMoves();
+ }else{
+  analysisGame=null;
+  analysisHistory=[];
+  undoButton.disabled=true;
+  show(index);
+ }
+}
+
+document.getElementById('sv-first').onclick=function(){
  if(mode==='analysis')setMode('replay');
  show(0);
-});
+};
 
-document.getElementById('sv-prev').addEventListener('click',function(){
+document.getElementById('sv-prev').onclick=function(){
  if(mode==='analysis')setMode('replay');
  show(index-1);
-});
+};
 
-document.getElementById('sv-next').addEventListener('click',function(){
+document.getElementById('sv-next').onclick=function(){
  if(mode==='analysis')setMode('replay');
  show(index+1);
-});
+};
 
-document.getElementById('sv-last').addEventListener('click',function(){
+document.getElementById('sv-last').onclick=function(){
  if(mode==='analysis')setMode('replay');
  show(history.length);
-});
+};
 
-document.getElementById('sv-flip').addEventListener('click',function(){
- board.flip();
-});
+document.getElementById('sv-flip').onclick=function(){board.flip();};
+document.getElementById('sv-replay').onclick=function(){setMode('replay');};
+document.getElementById('sv-analysis').onclick=function(){setMode('analysis');};
 
-document.getElementById('sv-replay').addEventListener('click',function(){
- setMode('replay');
-});
-
-document.getElementById('sv-analysis').addEventListener('click',function(){
- setMode('analysis');
-});
-
-undoButton.addEventListener('click',function(){
-
+undoButton.onclick=function(){
  if(mode!=='analysis')return;
 
  const undone=analysisGame.undo();
-
- if(undone){
-  analysisHistory.pop();
- }
+ if(undone)analysisHistory.pop();
 
  board.position(analysisGame.fen());
-
- status(
-  'Analysemodus · '+
-  (analysisGame.turn()==='w'?white:black)+
-  ' aan zet'
- );
-
+ status('Analysemodus · '+(analysisGame.turn()==='w'?white:black)+' aan zet');
  renderMoves();
-});
+};
 
-playButton.addEventListener('click',function(){
-
+playButton.onclick=function(){
  if(mode==='analysis')setMode('replay');
 
  if(timer){
@@ -561,14 +386,11 @@ playButton.addEventListener('click',function(){
   return;
  }
 
- if(index>=history.length){
-  show(0);
- }
+ if(index>=history.length)show(0);
 
  playButton.textContent='Pauzeren';
 
  timer=setInterval(function(){
-
   if(index>=history.length){
    stopTimer();
    return;
@@ -576,36 +398,25 @@ playButton.addEventListener('click',function(){
 
   index++;
   board.position(positions[index]);
-
   status('Zet '+index+' van '+history.length);
-
   renderMoves();
 
-  if(index>=history.length){
-   stopTimer();
-  }
-
+  if(index>=history.length)stopTimer();
  },1000);
-
-});
+};
 
 show(0);
-
 })();
-<\\/script>
-
+<\/script>
 <!-- Einde SV Bladel schaakviewer -->`;
 
  output.value=code;
-
- message.innerHTML=
-  '<p class="success">Blogger-code gegenereerd! Kopieer de HTML hieronder naar een Blogger-bericht in HTML-weergave.</p>';
+ message.innerHTML='<p class="success">Blogger-code gegenereerd! Kopieer de HTML hieronder naar je Blogger-bericht in HTML-weergave.</p>';
 }
 
 document.getElementById('generateButton').addEventListener('click',generate);
 
 async function copyCode(){
-
  if(!output.value){
   message.textContent='Genereer eerst de Blogger-code.';
   return;
@@ -617,19 +428,12 @@ async function copyCode(){
  }catch(error){
   output.focus();
   output.select();
-
-  try{
-   document.execCommand('copy');
-   message.innerHTML='<p class="success">HTML gekopieerd!</p>';
-  }catch(e){
-   message.textContent='Selecteer de code en kopieer deze handmatig.';
-  }
+  document.execCommand('copy');
+  message.innerHTML='<p class="success">HTML gekopieerd of geselecteerd. Kopieer eventueel met Ctrl+C.</p>';
  }
 }
 
 document.getElementById('copyButton').addEventListener('click',copyCode);
-
 </script>
-
 </body>
 </html>
