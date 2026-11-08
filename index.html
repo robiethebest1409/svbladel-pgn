@@ -742,52 +742,6 @@ const board = Chessboard('board',{
 
 /* Klikken en tikken om stukken te verplaatsen */
 
-let pointerStartX = 0;
-let pointerStartY = 0;
-let pointerMoved = false;
-
-const boardElement = document.getElementById('board');
-
-// Onthoud waar de muis of vinger begint
-boardElement.addEventListener('pointerdown',function(event){
-
-  if(mode !== 'analysis') return;
-
-  pointerStartX = event.clientX;
-  pointerStartY = event.clientY;
-  pointerMoved = false;
-
-},true);
-
-// Controleer of het een sleepbeweging is
-document.addEventListener('pointermove',function(event){
-
-  if(mode !== 'analysis') return;
-
-  if(
-    Math.abs(event.clientX-pointerStartX)>8 ||
-    Math.abs(event.clientY-pointerStartY)>8
-  ){
-    pointerMoved = true;
-  }
-
-},true);
-
-// Verwerk een klik of tik
-document.addEventListener('pointerup',function(event){
-
-  if(mode !== 'analysis' || !analysisGame) return;
-  if(pointerMoved) return;
-
-  const squareElement = event.target.closest('#board .square-55d63');
-
-  if(!squareElement) return;
-
-  handleSquareTap(squareElement.getAttribute('data-square'));
-
-},true);
-
-
 function handleSquareTap(square){
 
   if(mode !== 'analysis' || !analysisGame) return;
@@ -834,6 +788,66 @@ function handleSquareTap(square){
     selectSquare(selectedSquare);
 
   }
+}
+
+
+/* COMPUTER: gewone muisklikken */
+
+if(!window.matchMedia('(pointer: coarse)').matches){
+
+  $('#board').on('click', '.square-55d63', function(){
+
+    handleSquareTap($(this).attr('data-square'));
+
+  });
+
+}
+
+
+/* TELEFOON: tikken met pointer-events */
+
+else{
+
+  let pointerStartX = 0;
+  let pointerStartY = 0;
+  let pointerMoved = false;
+
+  const boardElement = document.getElementById('board');
+
+  boardElement.addEventListener('pointerdown',function(event){
+
+    pointerStartX = event.clientX;
+    pointerStartY = event.clientY;
+    pointerMoved = false;
+
+  },true);
+
+  document.addEventListener('pointermove',function(event){
+
+    if(
+      Math.abs(event.clientX-pointerStartX)>8 ||
+      Math.abs(event.clientY-pointerStartY)>8
+    ){
+      pointerMoved = true;
+    }
+
+  },true);
+
+  document.addEventListener('pointerup',function(event){
+
+    if(mode !== 'analysis' || !analysisGame) return;
+    if(pointerMoved) return;
+
+    const squareElement = event.target.closest('#board .square-55d63');
+
+    if(!squareElement) return;
+
+    handleSquareTap(
+      squareElement.getAttribute('data-square')
+    );
+
+  },true);
+
 }
 
 function setMode(nextMode){
