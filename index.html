@@ -740,21 +740,9 @@ const board = Chessboard('board',{
 
 /* Klikken en tikken om stukken te verplaatsen */
 
-let lastTouchTime = 0;
-
-function handleSquareTap(event){
+function handleSquareTap(){
 
   if(mode !== 'analysis' || !analysisGame) return;
-
-  // Voorkom dat een mobiele tik dubbel wordt verwerkt
-  if(event.type === 'click' && Date.now()-lastTouchTime < 500){
-    return;
-  }
-
-  if(event.type === 'touchend'){
-    lastTouchTime = Date.now();
-    event.preventDefault();
-  }
 
   const square = $(this).attr('data-square');
 
@@ -774,7 +762,7 @@ function handleSquareTap(event){
     return;
   }
 
-  // Tik op een eigen stuk: selecteer dat stuk
+  // Tik op een eigen stuk: ander stuk selecteren
   if(piece && piece.color === analysisGame.turn()){
     selectSquare(square);
     return;
@@ -810,33 +798,10 @@ function handleSquareTap(event){
 }
 
 $('#board').on(
-  'click touchend',
+  'click',
   '.square-55d63',
   handleSquareTap
 );
-
-  if(move){
-
-    analysisHistory.push(move.san);
-
-    clearSelection();
-
-    board.position(analysisGame.fen());
-
-    setStatus(
-      'Analysemodus · '+(analysisGame.turn()==='w'?white:black)+' aan zet'
-    );
-
-    renderMoves();
-
-  }else{
-
-    // Ongeldige bestemming: selectie behouden
-    selectSquare(selectedSquare);
-
-  }
-
-});
 
 function setMode(nextMode){
 
