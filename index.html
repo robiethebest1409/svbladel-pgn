@@ -793,27 +793,67 @@ function handleSquareTap(square){
 
 /* COMPUTER: enkele muisklik opvangen */
 
+
+/* COMPUTER: klikken EN slepen */
+
 if(!window.matchMedia('(pointer: coarse)').matches){
+
+  let pointerStartX = 0;
+  let pointerStartY = 0;
+  let pointerMoved = false;
+  let pointerActive = false;
 
   const desktopBoard = document.getElementById('board');
 
-  desktopBoard.addEventListener('mousedown', function(event){
+  desktopBoard.addEventListener('pointerdown',function(event){
 
-    if(event.button !== 0) return;
+    if(event.pointerType !== 'mouse' || event.button !== 0) return;
 
     const squareElement = event.target.closest('#board .square-55d63');
 
     if(!squareElement) return;
 
-    event.preventDefault();
+    pointerStartX = event.clientX;
+    pointerStartY = event.clientY;
+    pointerMoved = false;
+    pointerActive = true;
+
+  },true);
+
+  document.addEventListener('pointermove',function(event){
+
+    if(!pointerActive) return;
+
+    if(
+      Math.abs(event.clientX-pointerStartX)>6 ||
+      Math.abs(event.clientY-pointerStartY)>6
+    ){
+      pointerMoved = true;
+    }
+
+  },true);
+
+  document.addEventListener('pointerup',function(event){
+
+    if(!pointerActive) return;
+
+    pointerActive = false;
+
+    if(pointerMoved) return;
+    if(event.pointerType !== 'mouse') return;
+
+    const squareElement = event.target.closest('#board .square-55d63');
+
+    if(!squareElement) return;
 
     handleSquareTap(
       squareElement.getAttribute('data-square')
     );
 
-  }, true);
+  },true);
 
 }
+
 
 
 /* TELEFOON: tikken met pointer-events */
