@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -9,45 +10,199 @@
 
 <style>
 *{box-sizing:border-box}
-body{font-family:Arial,sans-serif;background:#f2f4f7;color:#203040;margin:0;padding:15px}
-main{max-width:950px;margin:20px auto;background:white;padding:22px;border-radius:12px;box-shadow:0 3px 15px #0001}
+
+body{
+  font-family:Arial,sans-serif;
+  background:#f2f4f7;
+  color:#203040;
+  margin:0;
+  padding:10px;
+}
+
+main{
+  max-width:950px;
+  margin:12px auto;
+  background:white;
+  padding:18px;
+  border-radius:12px;
+  box-shadow:0 3px 15px #0001;
+}
+
 h1,h2{color:#17324d}
 h1{border-bottom:4px solid #d7a928;padding-bottom:12px}
+
 label{display:block;font-weight:bold;margin:16px 0 6px}
-textarea,input{width:100%;padding:12px;border:1px solid #ccd4dc;border-radius:7px;font:inherit}
+
+textarea,input{
+  width:100%;
+  padding:12px;
+  border:1px solid #ccd4dc;
+  border-radius:7px;
+  font:inherit;
+}
+
 textarea{height:230px;font:13px monospace}
-button{padding:10px 14px;margin:5px 4px 5px 0;border:0;border-radius:6px;background:#17324d;color:white;font-weight:bold;cursor:pointer}
+#output{height:160px}
+
+button{
+  padding:9px 13px;
+  margin:4px;
+  border:0;
+  border-radius:6px;
+  background:#17324d;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+}
+
 button.secondary{background:#e7edf3;color:#17324d}
 button:disabled{opacity:.45;cursor:not-allowed}
-.info{background:#edf2f6;padding:14px;border-radius:7px;margin-top:14px;line-height:1.6}
+
+.info{
+  background:#edf2f6;
+  padding:14px;
+  border-radius:7px;
+  margin-top:14px;
+  line-height:1.6;
+}
+
 .success{color:#187344}
 .error{color:#b42318}
-.small{font-size:13px;color:#667788}
-#output{height:160px}#board{
+.small{font-size:12px;color:#667788}
+
+/* Compacte schaakviewer */
+#viewer{
+  max-width:620px;
+  padding:14px;
+}
+
+#viewer h2{
+  font-size:20px;
+  margin:2px 0 8px;
+  text-align:center;
+}
+
+#viewer p{
+  margin:6px 0;
+  font-size:13px;
+  text-align:center;
+}
+
+#board{
   width:100%;
   max-width:350px;
-  margin:15px auto;
-  /* Schaakstukken netjes centreren */
+  margin:8px auto;
+}
+
+/* Schaakstukken netjes centreren */
 #board .piece-417db{
   background-position:center center !important;
   background-repeat:no-repeat !important;
   background-size:88% 88% !important;
 }
-  /* Extra compacte bedieningsknoppen */
-button{
-  padding:3px 6px !important;
-  font-size:10px !important;
-  margin:1px !important;
-  min-width:0 !important;
-  border-radius:4px !important;
+
+/* Bedieningsknoppen */
+.controls{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:3px;
+  margin:5px 0;
 }
-.controls{text-align:center;margin:12px 0}
-#status{background:#edf2f6;padding:12px;border-radius:6px;margin:12px 0;text-align:center;font-weight:bold}
-#moves{max-height:220px;overflow:auto;border:1px solid #ddd;padding:8px;border-radius:6px;line-height:1.8}
-.move-button{background:#e8edf2;color:#17324d;padding:6px 9px}
-.move-button.active{background:#d7a928}
+
+#viewer button{
+  padding:5px 8px;
+  margin:1px;
+  font-size:11px;
+  border-radius:4px;
+  min-width:0;
+}
+
+#viewer button.secondary,
+#viewer .move-button{
+  background:#e8edf2;
+  color:#17324d;
+}
+
+#viewer .move-button.active{
+  background:#d7a928;
+  color:#17324d;
+}
+
+/* Status compact */
+#status{
+  background:#edf2f6;
+  padding:7px 9px;
+  border-radius:6px;
+  margin:8px 0;
+  text-align:center;
+  font-size:12px;
+  font-weight:bold;
+}
+
+/* Scrollbaar zettenoverzicht */
+#moves{
+  height:110px;
+  max-height:110px;
+  overflow-y:auto;
+  overflow-x:hidden;
+  border:1px solid #d9e0e6;
+  background:#f8fafc;
+  padding:5px 7px;
+  border-radius:6px;
+  line-height:1.4;
+  font-size:12px;
+}
+
+.move-row{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:3px;
+  min-height:25px;
+  padding:2px 0;
+  border-bottom:1px solid #edf0f3;
+}
+
+.move-number{
+  width:27px;
+  flex-shrink:0;
+  font-weight:bold;
+  color:#667788;
+}
+
+#viewer .move-button{
+  padding:3px 7px;
+  font-size:11px;
+  margin:0;
+}
+
+#viewer .move-button.active{
+  background:#d7a928;
+}
+
+#viewer .analysis-heading{
+  font-weight:bold;
+  margin-bottom:5px;
+}
+
+#viewer .analysis-line{
+  line-height:1.7;
+}
+
+#viewer #resultLine{
+  margin-top:7px;
+}
+
 [hidden]{display:none!important}
-@media(max-width:600px){body{padding:7px}main{padding:13px;margin:8px auto}}
+
+@media(max-width:600px){
+  body{padding:5px}
+  main{padding:11px;margin:6px auto}
+  #viewer{padding:9px}
+  #board{max-width:350px}
+}
 </style>
 </head>
 
@@ -123,9 +278,6 @@ button{
 <div id="moves"></div>
 
 <p class="small" id="resultLine"></p>
-<p class="small">
-In de analysemodus kun je zelf zetten proberen. Gebruik ‘Zet terug’ om een zet ongedaan te maken.
-</p>
 
 </main>
 
@@ -159,7 +311,7 @@ function showError(element,message){
 }
 
 
-/* ---------------- PUBLISHER ---------------- */
+/* PUBLISHER */
 
 if(!isViewer){
 
@@ -174,7 +326,6 @@ if(!isViewer){
   fileInput.addEventListener('change',async function(e){
     const file = e.target.files[0];
     if(!file) return;
-
     pgnInput.value = await file.text();
     parsed = null;
     resultBox.textContent = 'PGN-bestand geladen. Klik op Partij controleren.';
@@ -246,7 +397,6 @@ if(!isViewer){
 
     const title = document.getElementById('title').value.trim() || 'Schaakpartij';
 
-    // Dezelfde GitHub Pages-pagina wordt nu als schaakviewer gebruikt.
     const viewerUrl = new URL(window.location.href);
     viewerUrl.search = '';
     viewerUrl.hash = '';
@@ -289,7 +439,7 @@ if(!isViewer){
 }
 
 
-/* ---------------- SCHAAKVIEWER ---------------- */
+/* SCHAAKVIEWER */
 
 document.getElementById('publisher').hidden = true;
 document.getElementById('viewer').hidden = false;
@@ -299,7 +449,6 @@ const statusEl = document.getElementById('status');
 if(typeof Chess !== 'function' ||
    typeof Chessboard !== 'function' ||
    typeof jQuery === 'undefined'){
-
   showError(statusEl,'De schaakbibliotheken zijn niet geladen. Ververs de pagina en probeer opnieuw.');
   return;
 }
@@ -370,12 +519,13 @@ function renderMoves(){
 
   if(mode === 'analysis'){
 
-    const heading = document.createElement('b');
+    const heading = document.createElement('div');
+    heading.className = 'analysis-heading';
     heading.textContent = 'Eigen analyse';
     movesEl.appendChild(heading);
 
     const line = document.createElement('div');
-    line.style.marginTop = '8px';
+    line.className = 'analysis-line';
 
     line.textContent = analysisHistory.length
       ? analysisHistory.map(function(move,i){
@@ -390,10 +540,11 @@ function renderMoves(){
   for(let i=0;i<history.length;i+=2){
 
     const row = document.createElement('div');
-    row.style.padding = '4px';
+    row.className = 'move-row';
 
-    const number = document.createElement('b');
-    number.textContent = (Math.floor(i/2)+1)+'. ';
+    const number = document.createElement('span');
+    number.className = 'move-number';
+    number.textContent = (Math.floor(i/2)+1)+'.';
     row.appendChild(number);
 
     [i,i+1].forEach(function(j){
@@ -432,7 +583,7 @@ function show(n){
 }
 
 
-/* Het bord wordt op GitHub Pages aangemaakt. */
+/* Schaakbord */
 
 const board = Chessboard('board',{
 
