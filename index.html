@@ -791,17 +791,21 @@ function handleSquareTap(square){
 }
 
 
-/* COMPUTER: muisklikken rechtstreeks opvangen */
+/* COMPUTER: enkele muisklik opvangen */
 
 if(!window.matchMedia('(pointer: coarse)').matches){
 
   const desktopBoard = document.getElementById('board');
 
-  desktopBoard.addEventListener('click', function(event){
+  desktopBoard.addEventListener('mousedown', function(event){
+
+    if(event.button !== 0) return;
 
     const squareElement = event.target.closest('#board .square-55d63');
 
     if(!squareElement) return;
+
+    event.preventDefault();
 
     handleSquareTap(
       squareElement.getAttribute('data-square')
