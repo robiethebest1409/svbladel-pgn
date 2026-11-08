@@ -73,27 +73,29 @@ button:disabled{opacity:.45;cursor:not-allowed}
 /* Compacte schaakviewer */
 #viewer{
   max-width:620px;
-  padding:14px;
+  padding:6px;
+  margin:3px auto;
 }
 
 #viewer h2{
-  font-size:20px;
-  margin:2px 0 8px;
+  font-size:16px;
+  margin:0 0 3px;
   text-align:center;
 }
 
 #viewer p{
-  margin:6px 0;
-  font-size:13px;
+  margin:2px 0;
+  font-size:11px;
   text-align:center;
 }
 
 #board{
   width:100%;
-  max-width:300px;
-  margin:8px auto;
+  max-width:260px;
+  margin:3px auto;
 }
-  /* Voorkom dat de pagina meescrollt tijdens analyse */
+
+/* Voorkom dat de pagina meescrollt tijdens analyse */
 #board.analysis-mode,
 #board.analysis-mode *{
   touch-action:none !important;
@@ -115,28 +117,28 @@ button:disabled{opacity:.45;cursor:not-allowed}
   justify-content:center;
   align-items:center;
   flex-wrap:wrap;
-  gap:3px;
-  margin:5px 0;
+  gap:2px;
+  margin:2px 0;
 }
 
 #viewer button{
-  padding:5px 8px;
+  padding:3px 6px;
   margin:1px;
-  font-size:11px;
+  font-size:10px;
   border-radius:4px;
   min-width:0;
 }
 
 /* Gouden ronde afspeelknop */
 #viewer #play{
-  width:30px;
-  height:30px;
+  width:26px;
+  height:26px;
   border-radius:50%;
   background:#d7a928;
   color:#17324d;
-  font-size:15px;
+  font-size:14px;
   padding:0;
-  margin:0 4px;
+  margin:0 3px;
   line-height:1;
 }
 
@@ -146,10 +148,10 @@ button:disabled{opacity:.45;cursor:not-allowed}
 
 /* Bord draaien */
 #viewer #flip{
-  width:30px;
-  height:30px;
+  width:26px;
+  height:26px;
   padding:0;
-  font-size:17px;
+  font-size:15px;
   line-height:1;
 }
 
@@ -197,14 +199,14 @@ button:disabled{opacity:.45;cursor:not-allowed}
   box-shadow:inset 0 0 0 4px rgba(215,169,40,0.85);
 }
 
-/* Status compact */
+/* Status */
 #status{
   background:#edf2f6;
-  padding:7px 9px;
+  padding:4px;
   border-radius:6px;
-  margin:8px 0;
+  margin:4px 0;
   text-align:center;
-  font-size:12px;
+  font-size:10px;
   font-weight:bold;
 }
 
@@ -218,7 +220,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
   background:#f8fafc;
   padding:4px 6px;
   border-radius:6px;
-  line-height:1.3;
+  line-height:1.25;
   font-size:11px;
 }
 
@@ -227,7 +229,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
   align-items:center;
   flex-wrap:wrap;
   gap:3px;
-  min-height:25px;
+  min-height:21px;
   padding:2px 0;
   border-bottom:1px solid #edf0f3;
 }
@@ -259,55 +261,17 @@ button:disabled{opacity:.45;cursor:not-allowed}
 }
 
 #viewer #resultLine{
-  margin-top:7px;
+  margin-top:3px;
+  font-size:9px;
 }
 
 [hidden]{display:none!important}
 
 @media(max-width:600px){
-  body{padding:5px}
-  main{padding:11px;margin:6px auto}
-  #viewer{padding:9px}
-  #board{max-width:350px}
-}
-  /* Compacte weergave */
-#viewer{
-  padding:9px;
-}
-
-#viewer h2{
-  font-size:17px;
-  margin:0 0 5px;
-}
-
-#viewer p{
-  margin:3px 0;
-  font-size:12px;
-}
-
-.controls{
-  gap:2px;
-  margin:3px 0;
-}
-
-#viewer button{
-  padding:4px 7px;
-  font-size:10px;
-}
-
-#status{
-  padding:5px 7px;
-  margin:5px 0;
-  font-size:11px;
-}
-
-#viewer .move-row{
-  min-height:21px;
-}
-
-#viewer #resultLine{
-  margin-top:4px;
-  font-size:10px;
+  body{padding:3px}
+  main{padding:5px;margin:3px auto}
+  #viewer{padding:5px}
+  #board{max-width:260px}
 }
 </style>
 </head>
@@ -510,7 +474,7 @@ if(!isViewer){
     const embed =
       '<!-- SV Bladel interactieve schaakviewer -->\n'+
       '<iframe src="'+viewerUrl.href+'" '+
-      'style="width:100%;max-width:900px;height:650px;border:0;display:block;margin:10px auto" '+
+      'style="width:100%;max-width:900px;height:480px;border:0;display:block;margin:10px auto" '+
       'loading="lazy" title="Interactieve schaakpartij SV Bladel"></iframe>';
 
     output.value = embed;
@@ -778,7 +742,6 @@ const board = Chessboard('board',{
 });
 
 
-
 /* Klikken en tikken om stukken te verplaatsen */
 
 function handleSquareTap(square){
@@ -828,9 +791,6 @@ function handleSquareTap(square){
 
   }
 }
-
-
-/* COMPUTER: enkele muisklik opvangen */
 
 
 /* COMPUTER: klikken EN slepen */
@@ -892,7 +852,6 @@ if(!window.matchMedia('(pointer: coarse)').matches){
   },true);
 
 }
-
 
 
 /* TELEFOON: tikken met pointer-events */
@@ -1075,3 +1034,4 @@ window.addEventListener('resize',function(){
 
 </body>
 </html>
+
