@@ -474,9 +474,24 @@ if(!isViewer){
 
     const embed =
       '<!-- SV Bladel interactieve schaakviewer -->\n'+
-      '<iframe src="'+viewerUrl.href+'" '+
-      'style="width:100%;max-width:900px;height:960px;border:0;display:block;margin:10px auto" '+
-      'loading="lazy" title="Interactieve schaakpartij SV Bladel"></iframe>';
+      '<iframe id="svbladel-pgn-frame" src="'+viewerUrl.href+'" '+
+      'style="width:100%;max-width:900px;height:500px;border:0;display:block;margin:10px auto;overflow:hidden" '+
+      'scrolling="no" loading="lazy" title="Interactieve schaakpartij SV Bladel"></iframe>\n'+
+      '<script>\n'+
+      '(function(){\n'+
+      '  var frame=document.getElementById("svbladel-pgn-frame");\n'+
+      '  if(!frame) return;\n'+
+      '  window.addEventListener("message",function(event){\n'+
+      '    if(event.origin!=="https://robiethebest1409.github.io") return;\n'+
+      '    if(event.source!==frame.contentWindow) return;\n'+
+      '    var data=event.data;\n'+
+      '    if(!data || data.type!=="svbladel-pgn-height") return;\n'+
+      '    var height=Number(data.height);\n'+
+      '    if(!Number.isFinite(height) || height<200 || height>10000) return;\n'+
+      '    frame.style.height=Math.ceil(height)+"px";\n'+
+      '  });\n'+
+      '})();\n'+
+      '<\\/script>';
 
     output.value = embed;
 
@@ -512,12 +527,81 @@ if(!isViewer){
 document.getElementById('publisher').hidden = true;
 document.getElementById('viewer').hidden = false;
 
+
+/* AUTOMATISCHE HOOGTE VOOR BLOGGER */
+
+function reportViewerHeight(){
+
+  if(window.parent === window) return;
+
+  const height = Math.max(
+    document.body.scrollHeight,
+    document.documentElement.scrollHeight,
+    document.body.getBoundingClientRect().height
+  );
+
+  window.parent.postMessage({
+    type:'svbladel-pgn-height',
+    height:Math.ceil(height)
+  },'*');
+}
+
+let heightReportScheduled = false;
+
+function scheduleHeightReport(){
+
+  if(heightReportScheduled) return;
+
+  heightReportScheduled = true;
+
+  requestAnimationFrame(function(){
+    heightReportScheduled = false;
+    reportViewerHeight();
+  });
+}
+
+/* Opnieuw meten als de viewer verandert */
+if(typeof ResizeObserver !== 'undefined'){
+
+  const heightObserver = new ResizeObserver(scheduleHeightReport);
+
+  heightObserver.observe(document.getElementById('viewer'));
+  heightObserver.observe(document.body);
+}
+
+/* Ook veranderingen in de inhoud volgen */
+if(typeof MutationObserver !== 'undefined'){
+
+  const contentObserver = new MutationObserver(scheduleHeightReport);
+
+  contentObserver.observe(document.getElementById('viewer'),{
+    childList:true,
+    subtree:true,
+    attributes:true,
+    characterData:true
+  });
+}
+
+window.addEventListener('load',scheduleHeightReport);
+window.addEventListener('resize',scheduleHeightReport);
+
+if(document.fonts && document.fonts.ready){
+  document.fonts.ready.then(scheduleHeightReport);
+}
+
+/* Extra metingen voor het laden en tekenen van het schaakbord */
+setTimeout(scheduleHeightReport,100);
+setTimeout(scheduleHeightReport,500);
+setTimeout(scheduleHeightReport,1000);
+
+
 const statusEl = document.getElementById('status');
 
 if(typeof Chess !== 'function' ||
    typeof Chessboard !== 'function' ||
    typeof jQuery === 'undefined'){
   showError(statusEl,'De schaakbibliotheken zijn niet geladen. Ververs de pagina en probeer opnieuw.');
+  scheduleHeightReport();
   return;
 }
 
@@ -538,6 +622,7 @@ try{
 
 }catch(error){
   showError(statusEl,'PGN kon niet worden geladen: '+error.message);
+  scheduleHeightReport();
   return;
 }
 
@@ -641,6 +726,7 @@ function renderMoves(){
       : 'Je hebt nog geen eigen zetten gespeeld.';
 
     movesEl.appendChild(line);
+    scheduleHeightReport();
     return;
   }
 
@@ -671,6 +757,8 @@ function renderMoves(){
 
     movesEl.appendChild(row);
   }
+
+  scheduleHeightReport();
 }
 
 function show(n){
@@ -739,6 +827,8 @@ const board = Chessboard('board',{
     if(mode==='analysis' && analysisGame){
       board.position(analysisGame.fen());
     }
+
+    scheduleHeightReport();
   }
 });
 
@@ -934,6 +1024,8 @@ function setMode(nextMode){
 
     show(index);
   }
+
+  scheduleHeightReport();
 }
 
 
@@ -961,6 +1053,7 @@ document.getElementById('last').onclick = function(){
 
 document.getElementById('flip').onclick = function(){
   board.flip();
+  scheduleHeightReport();
 };
 
 document.getElementById('replay').onclick = function(){
@@ -1026,8 +1119,14 @@ playButton.onclick = function(){
 
 show(0);
 
+/* Nogmaals meten nadat het bord volledig is opgebouwd */
+scheduleHeightReport();
+setTimeout(scheduleHeightReport,250);
+setTimeout(scheduleHeightReport,750);
+
 window.addEventListener('resize',function(){
   board.resize();
+  scheduleHeightReport();
 });
 
 })();
