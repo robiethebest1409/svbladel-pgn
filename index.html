@@ -887,77 +887,53 @@ function handleSquareTap(square){
 
 
 
+
 /* COMPUTER: klikken EN slepen */
 
 if(!window.matchMedia('(pointer: coarse)').matches){
 
-  let mouseDownSquare = null;
-  let mouseDownX = 0;
-  let mouseDownY = 0;
-  let mouseWasDragged = false;
-
   const desktopBoard = document.getElementById('board');
 
-  /* Onthoud het vakje zodra de muisknop wordt ingedrukt */
+  let mouseDownX = 0;
+  let mouseDownY = 0;
+  let mouseMoved = false;
+
   desktopBoard.addEventListener('pointerdown',function(event){
 
     if(event.pointerType !== 'mouse' || event.button !== 0) return;
-    if(mode !== 'analysis') return;
 
-    const squareElement = event.target.closest('.square-55d63');
-    if(!squareElement) return;
-
-    mouseDownSquare = squareElement.getAttribute('data-square');
     mouseDownX = event.clientX;
     mouseDownY = event.clientY;
-    mouseWasDragged = false;
+    mouseMoved = false;
 
   },true);
 
-  /* Controleer of de gebruiker sleept */
-  document.addEventListener('pointermove',function(event){
-
-    if(mouseDownSquare === null || event.pointerType !== 'mouse') return;
+  desktopBoard.addEventListener('pointermove',function(event){
 
     if(
       Math.abs(event.clientX-mouseDownX)>6 ||
       Math.abs(event.clientY-mouseDownY)>6
     ){
-      mouseWasDragged = true;
+      mouseMoved = true;
     }
 
   },true);
 
-  /* Verwerk een gewone muisklik */
-  document.addEventListener('pointerup',function(event){
+  /* Gewone klik gebruiken, zoals in onze werkende versie */
+  desktopBoard.addEventListener('click',function(event){
 
-    if(mouseDownSquare === null || event.pointerType !== 'mouse') return;
+    if(mode !== 'analysis' || !analysisGame) return;
+    if(mouseMoved) return;
 
-    const clickedSquare = mouseDownSquare;
-    const wasDragged = mouseWasDragged;
+    const squareElement = event.target.closest('.square-55d63');
 
-    mouseDownSquare = null;
-    mouseWasDragged = false;
+    if(!squareElement) return;
 
-    /* Slepen wordt door Chessboard.js verwerkt */
-    if(wasDragged || mode !== 'analysis') return;
-
-    handleSquareTap(clickedSquare);
+    handleSquareTap(squareElement.getAttribute('data-square'));
 
   },true);
 
-  /* Reset wanneer het browservenster focus verliest */
-  window.addEventListener('blur',function(){
-
-    mouseDownSquare = null;
-    mouseWasDragged = false;
-
-  });
-
 }
-
-
-
 
 /* TELEFOON: tikken met pointer-events */
 
