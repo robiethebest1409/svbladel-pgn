@@ -886,65 +886,77 @@ function handleSquareTap(square){
 }
 
 
+
 /* COMPUTER: klikken EN slepen */
 
 if(!window.matchMedia('(pointer: coarse)').matches){
 
-  let pointerStartX = 0;
-  let pointerStartY = 0;
-  let pointerMoved = false;
-  let pointerActive = false;
+  let mouseDownSquare = null;
+  let mouseDownX = 0;
+  let mouseDownY = 0;
+  let mouseWasDragged = false;
 
   const desktopBoard = document.getElementById('board');
 
+  /* Onthoud het vakje zodra de muisknop wordt ingedrukt */
   desktopBoard.addEventListener('pointerdown',function(event){
 
     if(event.pointerType !== 'mouse' || event.button !== 0) return;
+    if(mode !== 'analysis') return;
 
-    const squareElement = event.target.closest('#board .square-55d63');
-
+    const squareElement = event.target.closest('.square-55d63');
     if(!squareElement) return;
 
-    pointerStartX = event.clientX;
-    pointerStartY = event.clientY;
-    pointerMoved = false;
-    pointerActive = true;
+    mouseDownSquare = squareElement.getAttribute('data-square');
+    mouseDownX = event.clientX;
+    mouseDownY = event.clientY;
+    mouseWasDragged = false;
 
   },true);
 
+  /* Controleer of de gebruiker sleept */
   document.addEventListener('pointermove',function(event){
 
-    if(!pointerActive) return;
+    if(mouseDownSquare === null || event.pointerType !== 'mouse') return;
 
     if(
-      Math.abs(event.clientX-pointerStartX)>6 ||
-      Math.abs(event.clientY-pointerStartY)>6
+      Math.abs(event.clientX-mouseDownX)>6 ||
+      Math.abs(event.clientY-mouseDownY)>6
     ){
-      pointerMoved = true;
+      mouseWasDragged = true;
     }
 
   },true);
 
+  /* Verwerk een gewone muisklik */
   document.addEventListener('pointerup',function(event){
 
-    if(!pointerActive) return;
+    if(mouseDownSquare === null || event.pointerType !== 'mouse') return;
 
-    pointerActive = false;
+    const clickedSquare = mouseDownSquare;
+    const wasDragged = mouseWasDragged;
 
-    if(pointerMoved) return;
-    if(event.pointerType !== 'mouse') return;
+    mouseDownSquare = null;
+    mouseWasDragged = false;
 
-    const squareElement = event.target.closest('#board .square-55d63');
+    /* Slepen wordt door Chessboard.js verwerkt */
+    if(wasDragged || mode !== 'analysis') return;
 
-    if(!squareElement) return;
-
-    handleSquareTap(
-      squareElement.getAttribute('data-square')
-    );
+    handleSquareTap(clickedSquare);
 
   },true);
 
+  /* Reset wanneer het browservenster focus verliest */
+  window.addEventListener('blur',function(){
+
+    mouseDownSquare = null;
+    mouseWasDragged = false;
+
+  });
+
 }
+
+
 
 
 /* TELEFOON: tikken met pointer-events */
