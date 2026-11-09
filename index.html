@@ -472,26 +472,28 @@ if(!isViewer){
     viewerUrl.searchParams.set('pgn',parsed.pgn);
     viewerUrl.searchParams.set('title',title);
 
-    const embed =
-      '<!-- SV Bladel interactieve schaakviewer -->\n'+
-      '<iframe id="svbladel-pgn-frame" src="'+viewerUrl.href+'" '+
-      'style="display:block;width:100%;max-width:100%;height:500px;border:0;margin:10px 0;overflow:hidden" '+
-      'scrolling="no" loading="lazy" title="Interactieve schaakpartij SV Bladel"></iframe>\n'+
-      '<script>\n'+
-      '(function(){\n'+
-      '  var frame=document.getElementById("svbladel-pgn-frame");\n'+
-      '  if(!frame) return;\n'+
-      '  window.addEventListener("message",function(event){\n'+
-      '    if(event.origin!=="https://robiethebest1409.github.io") return;\n'+
-      '    if(event.source!==frame.contentWindow) return;\n'+
-      '    var data=event.data;\n'+
-      '    if(!data || data.type!=="svbladel-pgn-height") return;\n'+
-      '    var height=Number(data.height);\n'+
-      '    if(!Number.isFinite(height) || height<200 || height>10000) return;\n'+
-      '    frame.style.height=Math.ceil(height)+"px";\n'+
-      '  });\n'+
-      '})();\n'+
-      '<\\/script>';
+   
+const embed =
+  '<!-- SV Bladel interactieve schaakviewer -->\n' +
+  '<iframe id="svbladel-pgn-frame" src="' + viewerUrl.href + '" ' +
+  'style="width:100%;max-width:100%;height:500px;border:0;display:block;margin:10px 0;overflow:hidden" ' +
+  'scrolling="no" loading="lazy" title="Interactieve schaakpartij SV Bladel"></iframe>\n' +
+  '<script>\n' +
+  '(function(){\n' +
+  '  var frame=document.getElementById("svbladel-pgn-frame");\n' +
+  '  if(!frame) return;\n' +
+  '  window.addEventListener("message",function(event){\n' +
+  '    if(event.origin!=="https://robiethebest1409.github.io") return;\n' +
+  '    if(event.source!==frame.contentWindow) return;\n' +
+  '    var data=event.data;\n' +
+  '    if(!data || data.type!=="svbladel-pgn-height") return;\n' +
+  '    var height=Number(data.height);\n' +
+  '    if(!Number.isFinite(height) || height<200 || height>10000) return;\n' +
+  '    frame.style.height=Math.ceil(height)+"px";\n' +
+  '  });\n' +
+  '})();\n' +
+  '</' + 'script>';
+
 
     output.value = embed;
 
