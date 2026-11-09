@@ -889,73 +889,82 @@ function handleSquareTap(square){
 
 
 
+
 /* COMPUTER: klikken EN slepen */
 
 if(!window.matchMedia('(pointer: coarse)').matches){
 
   const desktopBoard = document.getElementById('board');
 
-  let startSquare = null;
-  let startX = 0;
-  let startY = 0;
-  let wasDragged = false;
+  let downSquare = null;
+  let downX = 0;
+  let downY = 0;
+  let moved = false;
+
+  function squareFromEvent(event){
+    const element = event.target.closest('#board .square-55d63');
+    return element ? element.getAttribute('data-square') : null;
+  }
 
   desktopBoard.addEventListener('pointerdown',function(event){
 
     if(event.pointerType !== 'mouse' || event.button !== 0) return;
     if(mode !== 'analysis' || !analysisGame) return;
 
-    const square = event.target.closest('.square-55d63');
+    downSquare = squareFromEvent(event);
+    downX = event.clientX;
+    downY = event.clientY;
+    moved = false;
 
-    startSquare = square ? square.getAttribute('data-square') : null;
-    startX = event.clientX;
-    startY = event.clientY;
-    wasDragged = false;
+    if(!downSquare) return;
+
+    /* Selecteer direct, zodat de puntjes zichtbaar worden */
+    if(!selectedSquare){
+      selectSquare(downSquare);
+    }
 
   },true);
 
   document.addEventListener('pointermove',function(event){
 
-    if(startSquare === null || event.pointerType !== 'mouse') return;
+    if(downSquare === null || event.pointerType !== 'mouse') return;
 
     if(
-      Math.abs(event.clientX-startX)>6 ||
-      Math.abs(event.clientY-startY)>6
+      Math.abs(event.clientX-downX)>6 ||
+      Math.abs(event.clientY-downY)>6
     ){
-      wasDragged = true;
+      moved = true;
     }
 
   },true);
 
   document.addEventListener('pointerup',function(event){
 
-    if(startSquare === null || event.pointerType !== 'mouse') return;
+    if(downSquare === null || event.pointerType !== 'mouse') return;
 
-    const square = startSquare;
-    const dragged = wasDragged;
+    const clickedSquare = downSquare;
+    const wasDragged = moved;
 
-    startSquare = null;
-    wasDragged = false;
+    downSquare = null;
+    moved = false;
 
-    if(dragged || mode !== 'analysis') return;
+    if(wasDragged || mode !== 'analysis') return;
 
-    /* Wacht tot Chessboard.js zijn muisactie heeft verwerkt */
-    setTimeout(function(){
-
-      if(mode !== 'analysis' || !analysisGame) return;
-
-      handleSquareTap(square);
-
-    },100);
+    /* Alleen een tweede klik voert een zet uit */
+    if(selectedSquare !== clickedSquare){
+      handleSquareTap(clickedSquare);
+    }
 
   },true);
 
   window.addEventListener('blur',function(){
-    startSquare = null;
-    wasDragged = false;
+    downSquare = null;
+    moved = false;
   });
 
 }
+
+
 
 
 
