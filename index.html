@@ -888,52 +888,76 @@ function handleSquareTap(square){
 
 
 
+
 /* COMPUTER: klikken EN slepen */
 
 if(!window.matchMedia('(pointer: coarse)').matches){
 
   const desktopBoard = document.getElementById('board');
 
-  let mouseDownX = 0;
-  let mouseDownY = 0;
-  let mouseMoved = false;
+  let startSquare = null;
+  let startX = 0;
+  let startY = 0;
+  let wasDragged = false;
 
   desktopBoard.addEventListener('pointerdown',function(event){
 
     if(event.pointerType !== 'mouse' || event.button !== 0) return;
+    if(mode !== 'analysis' || !analysisGame) return;
 
-    mouseDownX = event.clientX;
-    mouseDownY = event.clientY;
-    mouseMoved = false;
+    const square = event.target.closest('.square-55d63');
+
+    startSquare = square ? square.getAttribute('data-square') : null;
+    startX = event.clientX;
+    startY = event.clientY;
+    wasDragged = false;
 
   },true);
 
-  desktopBoard.addEventListener('pointermove',function(event){
+  document.addEventListener('pointermove',function(event){
+
+    if(startSquare === null || event.pointerType !== 'mouse') return;
 
     if(
-      Math.abs(event.clientX-mouseDownX)>6 ||
-      Math.abs(event.clientY-mouseDownY)>6
+      Math.abs(event.clientX-startX)>6 ||
+      Math.abs(event.clientY-startY)>6
     ){
-      mouseMoved = true;
+      wasDragged = true;
     }
 
   },true);
 
-  /* Gewone klik gebruiken, zoals in onze werkende versie */
-  desktopBoard.addEventListener('click',function(event){
+  document.addEventListener('pointerup',function(event){
 
-    if(mode !== 'analysis' || !analysisGame) return;
-    if(mouseMoved) return;
+    if(startSquare === null || event.pointerType !== 'mouse') return;
 
-    const squareElement = event.target.closest('.square-55d63');
+    const square = startSquare;
+    const dragged = wasDragged;
 
-    if(!squareElement) return;
+    startSquare = null;
+    wasDragged = false;
 
-    handleSquareTap(squareElement.getAttribute('data-square'));
+    if(dragged || mode !== 'analysis') return;
+
+    /* Wacht tot Chessboard.js zijn muisactie heeft verwerkt */
+    setTimeout(function(){
+
+      if(mode !== 'analysis' || !analysisGame) return;
+
+      handleSquareTap(square);
+
+    },100);
 
   },true);
 
+  window.addEventListener('blur',function(){
+    startSquare = null;
+    wasDragged = false;
+  });
+
 }
+
+
 
 /* TELEFOON: tikken met pointer-events */
 
